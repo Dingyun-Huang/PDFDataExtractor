@@ -170,7 +170,7 @@ class Methods(object):
                 self.text.append('')
                 droped_text.append(value['universal_sequence'])
             else:
-                self.text.append(value['text'].replace('\n', ' '))
+                self.text.append(value['text'].replace("-\n", "").replace('\n', ' '))
 
         # Build indexing
         title_search = re.compile(extraction_pattern)
@@ -232,7 +232,7 @@ class Methods(object):
     def get_puretext(self, pdf):
         pdf_body = ''
         for key, value in pdf.items():
-            pdf_body += value['text'] + '\n\n'
+            pdf_body += value['text'].replace("-\n", "") + '\n\n'
         return pdf_body
 
     def get_metadata(self, pdf):
