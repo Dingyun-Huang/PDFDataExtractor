@@ -18,19 +18,30 @@ class Methods(object):
         self.section_result = {}
         self.text = []
 
-    def header_removal(self, dic_page):
-        """Find page headers, numbers, figure captions """
+    def header_footer_removal(self, dic_page):
+        """Find page headers, footers, numbers, figure captions """
 
         headers = []
-        compare = []
+        footers = []
+        compare_h = []
+        compare_f = []
+        text_boxes = [max([key[1] for key in dic_page.keys() if key[0] == i])
+                      for i in range(max([key[0] for key in dic_page.keys()]) + 1)]
 
         for key, value in dic_page.items():
             if int(key[1]) < 3:  # First 3 elements of one page
-                if value['text'] in compare:
+                if value['text'] in compare_h:
                     headers.append(value['text'])
                 else:
                     pass
-                    compare.append(value['text'])
+                    compare_h.append(value['text'])
+            
+            if text_boxes[key[0]] - int(key[1]) < 5: # Check last 4 elements of one page
+                if re.subn(r"\d", r"\\d", value['text']) in compare_f:
+                    footers.append(value['text'])
+                else:
+                    pass
+                    compare_f.append(re.subn(r"\d", r"\\d", value['text']))
 
         # re.search pattern transformation
         removals = ['^\d+$|^Fig.+|^Table.+']  # Page number, figure and table captions
@@ -45,6 +56,11 @@ class Methods(object):
             for header in list(set(headers)):
                 removals.append(pattern.sub(lambda m: rep[re.escape(m.group(0))],
                                             header))  # This is actually the string of headers found
+        
+        if footers:
+            for footer in list(set(footers)):
+                removals.append(pattern.sub(lambda m: rep[re.escape(m.group(0))],
+                                            footer))  # This is actually the string of footers found
 
         return str('|^'.join(removals))  # Search pattern for page number, figure/table caption, and page headers
 
@@ -157,18 +173,18 @@ class Methods(object):
         :param location_new: Updated from 'locations' based on 'sizes'
         :param titles_new: Updated from 'titles_new' based on 'sizes'
         :param target: Noisy information including Headers, captions and page number
-        :param droped_text: Headers, captions and page number are collected in this list
+        :param dropped_text: Headers, captions and page number are collected in this list
         """
 
         locations, text, titles, sizes, location_new, titles_new = [], [], [], [], [], []
-        target = self.header_removal(dic)  # Headers, captions and page number get removed here from the whole text
-        droped_text = []
+        target = self.header_footer_removal(dic)  # Headers, captions and page number get removed here from the whole text
+        dropped_text = []
 
         # Build text
         for key, value in dic.items():
             if re.search(target, value['text']):  # Dump page numbers and headers for each page
                 self.text.append('')
-                droped_text.append(value['universal_sequence'])
+                dropped_text.append(value['universal_sequence'])
             else:
                 self.text.append(value['text'].replace("-\n", "").replace('\n', ' '))
 
@@ -176,7 +192,7 @@ class Methods(object):
         title_search = re.compile(extraction_pattern)
         for key, value in dic.items():
 
-            if value['universal_sequence'] in droped_text:
+            if value['universal_sequence'] in dropped_text:
                 pass
             elif value['horizontal'] > value['page_x']:
                 pass
