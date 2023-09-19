@@ -1,6 +1,5 @@
 *.egg-info/
 *.pyc
 *log.txt
-demo/
-
+*-checkpoint.ipynb
 demo/PDE Demo.ipynb

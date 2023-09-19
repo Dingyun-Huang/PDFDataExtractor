@@ -33,18 +33,16 @@ class Methods(object):
                 if value['text'] in compare_h:
                     headers.append(value['text'])
                 else:
-                    pass
                     compare_h.append(value['text'])
             
             if text_boxes[key[0]] - int(key[1]) < 5: # Check last 4 elements of one page
                 if re.subn(r"\d", r"\\d", value['text']) in compare_f:
-                    footers.append(value['text'])
+                    footers.append(re.subn(r"\d", r"\\d", value['text'])[0])
                 else:
-                    pass
                     compare_f.append(re.subn(r"\d", r"\\d", value['text']))
 
         # re.search pattern transformation
-        removals = ['^\d+$|^Fig.+|^Table.+']  # Page number, figure and table captions
+        removals = ['^\d+$|^Fig.+|^Table.+|^Scheme.+']  # Page number, figure and table captions
         rep = {' ': '\s',
                '.': '\.',
                '(': '\(',
@@ -182,6 +180,7 @@ class Methods(object):
 
         # Build text
         for key, value in dic.items():
+
             if re.search(target, value['text']):  # Dump page numbers and headers for each page
                 self.text.append('')
                 dropped_text.append(value['universal_sequence'])
